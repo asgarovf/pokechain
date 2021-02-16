@@ -56,19 +56,53 @@
   
 */
 
-const Observer = {
-  getParams : {
+const ObserverInterface = {
+  getParams: Object({
     payoutPerDuration: UInt,
-    moveLİmit: UInt,
-  }
+    moveLimit: UInt,
+  }),
+  observeMove: Fun([UInt], Null),  
+  observeGameFinish: Fun([], Null)
 };
 
-const Player = {
-  confirmMove: Fun([UInt], Tuple(Bool, UInt, UInt))
+const PlayerInterface = {
+  confirmMove: Fun([UInt], Object({ 
+    response: Bool,
+    move: UInt,
+    duration: UInt
+  }))
 };
 
 export const main = Reach.App(
-  {}, [['Observer', Observer], ['Player', Player]], (Alice, Bob) => {
-    
+  {}, [['Observer', ObserverInterface], ['class', 'Player', PlayerInterface]], (Observer, Player) => {
+    Observer.only(() => {
+      const _params = interact.getParams;
+      const [payoutPerDuration, moveLimit] = declassify([_params.payoutPerDuration, _params.moveLimit]);
+    });
+    Observer.publish(payoutPerDuration, moveLimit);
+
+    var [movePlayed, totalPayout] = [0, 0];
+    invariant(balance() == totalPayout);
+    while(movePlayed < moveLimit) {
+        commit();
+
+        Player.only(() => {
+          const _pMove = interact.confirmMove(payoutPerDuration);
+          const pMove = declassify(_pMove);
+        });
+        Player.publish(pMove)
+          .pay((pMove.duration * payoutPerDuration));
+
+        commit();
+
+        Observer.only(() => {
+          interact.observeMove(pMove.move);
+        });
+        Observer.publish();
+
+        [movePlayed, totalPayout] = pMove.response ? [movePlayed+1, totalPayout+(pMove.duration * payoutPerDuration)] : [movePlayed, totalPayout];
+
+        continue;
+    }
   }
 );

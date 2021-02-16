@@ -26,7 +26,7 @@ import * as backend from './build/index.main.mjs';
     }),
     backend.Player(ctcPlayer, {
       confirmMove: (payoutPerDuration) => {
-        return [true, 2, 5];
+        return [true, 2, 5, 10];
       }
     }),
   ]);

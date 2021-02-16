@@ -25,7 +25,7 @@
   * Data Definition
   duration: UInt
   move: UInt
-  payoutPerDonation: UInt
+  payoutPerDuration: UInt
   moveLimit: UInt
 
   * Participate Interfaces
@@ -74,12 +74,18 @@ const PlayerInterface = {
 };
 
 export const main = Reach.App(
-  {}, [['Observer', ObserverInterface], ['class', 'Player', PlayerInterface]], (Observer, Player) => {
+  {}, [
+    ['Observer', ObserverInterface], 
+    ['class', 'Player', PlayerInterface]
+  ], 
+  (Observer, Player) => {
     Observer.only(() => {
       const _params = interact.getParams;
       const [payoutPerDuration, moveLimit] = declassify([_params.payoutPerDuration, _params.moveLimit]);
     });
     Observer.publish(payoutPerDuration, moveLimit);
+
+    require(moveLimit >= 1);
 
     var [movePlayed, totalPayout] = [0, 0];
     invariant(balance() == totalPayout);
@@ -102,7 +108,11 @@ export const main = Reach.App(
 
         [movePlayed, totalPayout] = pMove.response ? [movePlayed+1, totalPayout+(pMove.duration * payoutPerDuration)] : [movePlayed, totalPayout];
 
+        assert(totalPayout == balance());
         continue;
     }
+
+    transfer(balance()).to(Observer);
+    commit();
   }
 );

@@ -77,11 +77,12 @@ export const main = Reach.App(
   (Observer, Player) => {
     Observer.only(() => {
       const _params = interact.getParams;
+      // !! Check params.moveLimit 
+      assume(_params.moveLimit > 0);
       const [payoutPerDuration, moveLimit] = declassify([_params.payoutPerDuration, _params.moveLimit]);
     });
     Observer.publish(payoutPerDuration, moveLimit);
 
-    require(moveLimit > 0);
     require(moveLimit >= 1);
 
     var game = ({
@@ -93,8 +94,9 @@ export const main = Reach.App(
         commit();
 
         Player.only(() => {
-          const [response, move, duration, toPay] = declassify(interact.confirmMove(payoutPerDuration));
-          assert((response && toPay > 0) || (!response && toPay == 0));
+          const [_response, _move, _duration, _toPay] = interact.confirmMove(payoutPerDuration);
+          assume((_response && (_toPay > 0)) || (!_response && (_toPay == 0)));
+          const [response, move, duration, toPay] = declassify([_response, _move, _duration, _toPay]);
         });
         Player.publish(response, move, duration, toPay)
           .pay(toPay);
@@ -108,15 +110,12 @@ export const main = Reach.App(
         });
         Observer.publish();
 
-        //[movePlayed, totalPayout] = response ? [add(movePlayed, 1), add(totalPayout, toPay)] : [movePlayed, totalPayout];
-
         game = {
           movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
-          totalPayout: response ? add(game.totalPayout, toPay) : game.totalPayout
+          totalPayout: add(game.totalPayout, toPay)
         };
         continue;
     }
-    require(intEq(game.movePlayed, moveLimit));
 
     transfer(balance()).to(Observer);
     commit();

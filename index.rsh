@@ -39,7 +39,7 @@
 
   ? Player 
   {
-    confirmMove = Fun([UInt], Tuple(Bool, (move) UInt, (duration) UInt))
+    confirmMove = Fun([UInt], Tuple(Bool, (move) UInt, (duration) UInt, (toPay) UInt))
   }
 
   * Communication Construction
@@ -66,11 +66,7 @@ const ObserverInterface = {
 };
 
 const PlayerInterface = {
-  confirmMove: Fun([UInt], Object({ 
-    response: Bool,
-    move: UInt,
-    duration: UInt
-  }))
+  confirmMove: Fun([UInt], Tuple(Bool, UInt, UInt, UInt))
 };
 
 export const main = Reach.App(
@@ -85,32 +81,42 @@ export const main = Reach.App(
     });
     Observer.publish(payoutPerDuration, moveLimit);
 
+    require(moveLimit > 0);
     require(moveLimit >= 1);
 
-    var [movePlayed, totalPayout] = [0, 0];
-    invariant(balance() == totalPayout);
-    while(movePlayed < moveLimit) {
+    var game = ({
+      movePlayed: 0,
+      totalPayout: 0
+    });
+    invariant(balance() == game.totalPayout);
+    while(game.movePlayed < moveLimit) {
         commit();
 
         Player.only(() => {
-          const _pMove = interact.confirmMove(payoutPerDuration);
-          const pMove = declassify(_pMove);
+          const [response, move, duration, toPay] = declassify(interact.confirmMove(payoutPerDuration));
+          assert((response && toPay > 0) || (!response && toPay == 0));
         });
-        Player.publish(pMove)
-          .pay((pMove.duration * payoutPerDuration));
+        Player.publish(response, move, duration, toPay)
+          .pay(toPay);
 
         commit();
 
         Observer.only(() => {
-          interact.observeMove(pMove.move);
+          if(response) {
+            interact.observeMove(move);
+          }
         });
         Observer.publish();
 
-        [movePlayed, totalPayout] = pMove.response ? [movePlayed+1, totalPayout+(pMove.duration * payoutPerDuration)] : [movePlayed, totalPayout];
+        //[movePlayed, totalPayout] = response ? [add(movePlayed, 1), add(totalPayout, toPay)] : [movePlayed, totalPayout];
 
-        assert(totalPayout == balance());
+        game = {
+          movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
+          totalPayout: response ? add(game.totalPayout, toPay) : game.totalPayout
+        };
         continue;
     }
+    require(intEq(game.movePlayed, moveLimit));
 
     transfer(balance()).to(Observer);
     commit();

@@ -5,18 +5,29 @@ import * as backend from './build/index.main.mjs';
   const stdlib = await loadStdlib();
   const startingBalance = stdlib.parseCurrency(100);
 
-  const alice = await stdlib.newTestAccount(startingBalance);
-  const bob = await stdlib.newTestAccount(startingBalance);
+  const observer = await stdlib.newTestAccount(startingBalance);
+  const player = await stdlib.newTestAccount(startingBalance);
 
-  const ctcAlice = alice.deploy(backend);
-  const ctcBob = bob.attach(backend, ctcAlice.getInfo());
+  const ctcObserver = observer.deploy(backend);
+  const ctcPlayer = player.attach(backend, ctcObserver.getInfo());
 
   await Promise.all([
-    backend.Alice(ctcAlice, {
-      ...stdlib.hasRandom
+    backend.Observer(ctcObserver, {
+      getParams: ({
+        payoutPerDuration: 5,
+        moveLimit: 20
+      }),
+      observeMove: (move) => {
+        console.log(`Move: ${move}`);
+      },  
+      observeGameFinish: () => {
+        console.log("Game has finished");
+      }
     }),
-    backend.Bob(ctcBob, {
-      ...stdlib.hasRandom
+    backend.Player(ctcPlayer, {
+      confirmMove: (payoutPerDuration) => {
+        return [true, 2, 5];
+      }
     }),
   ]);
 

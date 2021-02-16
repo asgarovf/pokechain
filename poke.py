@@ -2,6 +2,9 @@ import socket
 import pyautogui
 import threading
 
+# Currently only plays the game from Twitch chat, we dont need that
+# Instead get the info from the API
+
 # credentials
 SERVER = "irc.twitch.tv"
 PORT = 6667

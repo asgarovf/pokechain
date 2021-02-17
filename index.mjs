@@ -23,8 +23,10 @@ var gameList = [];
         moveLimit: 20
       }),
       observeMove: (movesList) => {
-        console.log(`Observer observed the moveList with length ${gameList.length}"`);       
+        // * Operate on array here * //
         // TODO: API call POST(move) setMove
+        console.log(`Observer observed the moveList with length ${gameList.length}"`);       
+        gameList = [];
       },  
       observeGameFinish: () => {
         console.log("Game has finished");
@@ -39,7 +41,6 @@ var gameList = [];
         const move = (Math.floor(Math.random() * 5)+1);
         console.log(`Player ${i} played to move "${moves[move-1]}"`);
         gameList.push(move);
-        // TODO: For now API Call is here
         return [true, move, 5, 5*move];
       }
     });

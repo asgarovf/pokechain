@@ -56,14 +56,14 @@
   
 */
 
-const totalMoves = 50;
+const totalTurns = 10;
 
 const ObserverInterface = {
   getParams: Object({
     payoutPerDuration: UInt,
     moveLimit: UInt,
   }),
-  observeMove: Fun([Array(UInt, totalMoves)], Null),  
+  observeMove: Fun([Array(UInt, totalTurns)], Null),  
   observeGameFinish: Fun([], Null)
 };
 
@@ -77,6 +77,7 @@ export const main = Reach.App(
     ['class', 'Player', PlayerInterface]
   ], 
   (Observer, Player) => {
+    // TODO: Clean moveLimit in this version
     Observer.only(() => {
       const _params = interact.getParams;
       assume(_params.moveLimit > 0);
@@ -87,12 +88,12 @@ export const main = Reach.App(
     require(moveLimit >= 1);
 
     var game = ({
-      moveList: Array.replicate(totalMoves, 0),
+      moveList: Array.replicate(totalTurns, 0),
       movePlayed: 0,
       totalPayout: 0
     });
     invariant(balance() == game.totalPayout);
-    while(game.movePlayed < totalMoves) {
+    while(game.movePlayed < totalTurns) {
         commit();
 
         Player.only(() => {
@@ -103,21 +104,23 @@ export const main = Reach.App(
         Player.publish(response, move, duration, toPay)
           .pay(toPay);
 
-        commit();
-
-        Observer.only(() => {
-          if(response) {
-            interact.observeMove(game.moveList);
-          }
-        });
-        Observer.publish();
-
-
-        game = {
+        const afterGame = {
           moveList: response ? game.moveList.set(game.movePlayed, move) : game.moveList,
           movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
           totalPayout: add(game.totalPayout, toPay)
         };
+
+        commit();
+
+        Observer.only(() => {
+          if(response) {
+            interact.observeMove(afterGame.moveList);
+          }
+        });
+        Observer.publish();
+
+        game = afterGame;
+
         continue;
     }
 

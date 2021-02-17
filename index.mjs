@@ -3,6 +3,7 @@ import * as backend from './build/index.main.mjs';
 
 const moves = ['Forwards', 'Backwards', 'Left', 'Right', 'A Button'];
 const numOfPlayers = 10;
+var gameList = [];
 
 (async () => {
   const stdlib = await loadStdlib();
@@ -14,7 +15,6 @@ const numOfPlayers = 10;
   );
 
   const ctcObserver = observer.deploy(backend);
-  //const ctcPlayer = player.attach(backend, ctcObserver.getInfo());
 
   await Promise.all([
     backend.Observer(ctcObserver, {
@@ -22,8 +22,8 @@ const numOfPlayers = 10;
         payoutPerDuration: 5,
         moveLimit: 20
       }),
-      observeMove: (move) => {
-        console.log(`Move: ${moves[move-1]}`);
+      observeMove: (movesList) => {
+        console.log(`Observer observed the moveList with length ${gameList.length}"`);       
         // TODO: API call POST(move) setMove
       },  
       observeGameFinish: () => {
@@ -38,7 +38,8 @@ const numOfPlayers = 10;
       confirmMove: (payoutPerDuration) => {
         const move = (Math.floor(Math.random() * 5)+1);
         console.log(`Player ${i} played to move "${moves[move-1]}"`);
-        // confirmMove = Fun([UInt], Tuple(Bool, (move) UInt, (duration) UInt, (toPay) UInt))
+        gameList.push(move);
+        // TODO: For now API Call is here
         return [true, move, 5, 5*move];
       }
     });

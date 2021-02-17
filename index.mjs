@@ -1,24 +1,52 @@
 import {loadStdlib} from '@reach-sh/stdlib';
 import * as backend from './build/index.main.mjs';
 
+const moves = ['Forwards', 'Backwards', 'Left', 'Right', 'A Button'];
+const numOfPlayers = 10;
+var gameList = [];
+
 (async () => {
   const stdlib = await loadStdlib();
   const startingBalance = stdlib.parseCurrency(100);
 
-  const alice = await stdlib.newTestAccount(startingBalance);
-  const bob = await stdlib.newTestAccount(startingBalance);
+  const observer = await stdlib.newTestAccount(startingBalance);
+  const playerArray = await Promise.all(
+    Array.from({length:10 }, () => stdlib.newTestAccount(startingBalance))
+  );
 
-  const ctcAlice = alice.deploy(backend);
-  const ctcBob = bob.attach(backend, ctcAlice.getInfo());
+  const ctcObserver = observer.deploy(backend);
 
   await Promise.all([
-    backend.Alice(ctcAlice, {
-      ...stdlib.hasRandom
-    }),
-    backend.Bob(ctcBob, {
-      ...stdlib.hasRandom
-    }),
-  ]);
+    backend.Observer(ctcObserver, {
+      getParams: ({
+        payoutPerDuration: 5,
+        moveLimit: 20
+      }),
+      observeMove: (movesList) => {
+        // * Operate on array here * //
+        // TODO: API call POST(move) setMove
+        console.log(`Observer observed the moveList with length ${gameList.length}"`);       
+        gameList = [];
+      },  
+      observeGameFinish: () => {
+        console.log("Game has finished");
+        // TODO: API call POST() gameFinish
+      }
+    })
+  ].concat(playerArray.map((player, i) => {
+    const ctcPlayer = player.attach(backend, ctcObserver.getInfo());
 
-  console.log('Hello, Alice and Bob!');
+    return backend.Player(ctcPlayer, {
+      confirmMove: (payoutPerDuration) => {
+        const move = (Math.floor(Math.random() * 5)+1);
+        console.log(`Player ${i} played to move "${moves[move-1]}"`);
+        gameList.push(move);
+        return [true, move, 5, 5*move];
+      }
+    });
+  })));
+
+
+
+  console.log('[DEBUG] Game has finished.');
 })();

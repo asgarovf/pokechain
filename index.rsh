@@ -56,12 +56,30 @@
   
 */
 
+// ! Code needs to be brutally refactored
+/*
+  * For now totalTurns must be defined before-hand.
+  * Also frontend must define the player count either 
+    ? - 1. By embeding it to the frontend code
+    ? - 2. By asking it before the game starts
+
+  * Every turn players add their moves to a list in the frontend and observer
+  * pushes this list to the server by an API call (Not implemented yet).
+  
+  * For test purposes players return random numbers
+  
+  TODO: Make players return false
+  
+ */ 
+
+const totalTurns = 10;
+
 const ObserverInterface = {
   getParams: Object({
     payoutPerDuration: UInt,
     moveLimit: UInt,
   }),
-  observeMove: Fun([UInt], Null),  
+  observeMove: Fun([Array(UInt, totalTurns)], Null),  
   observeGameFinish: Fun([], Null)
 };
 
@@ -75,6 +93,7 @@ export const main = Reach.App(
     ['class', 'Player', PlayerInterface]
   ], 
   (Observer, Player) => {
+    // TODO: Clean moveLimit in this version
     Observer.only(() => {
       const _params = interact.getParams;
       assume(_params.moveLimit > 0);
@@ -85,11 +104,12 @@ export const main = Reach.App(
     require(moveLimit >= 1);
 
     var game = ({
+      moveList: Array.replicate(totalTurns, 0),
       movePlayed: 0,
       totalPayout: 0
     });
     invariant(balance() == game.totalPayout);
-    while(game.movePlayed < moveLimit) {
+    while(game.movePlayed < totalTurns) {
         commit();
 
         Player.only(() => {
@@ -100,19 +120,23 @@ export const main = Reach.App(
         Player.publish(response, move, duration, toPay)
           .pay(toPay);
 
+        const afterGame = {
+          moveList: response ? game.moveList.set(game.movePlayed, move) : game.moveList,
+          movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
+          totalPayout: add(game.totalPayout, toPay)
+        };
+
         commit();
 
         Observer.only(() => {
           if(response) {
-            interact.observeMove(move);
+            interact.observeMove(afterGame.moveList);
           }
         });
         Observer.publish();
 
-        game = {
-          movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
-          totalPayout: add(game.totalPayout, toPay)
-        };
+        game = afterGame;
+
         continue;
     }
 

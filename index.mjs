@@ -1,6 +1,8 @@
 import {loadStdlib} from '@reach-sh/stdlib';
 import * as backend from './build/index.main.mjs';
 
+const moves = ['Forwards', 'Backwards', 'Left', 'Right', 'A Button'];
+
 (async () => {
   const stdlib = await loadStdlib();
   const startingBalance = stdlib.parseCurrency(100);
@@ -18,7 +20,7 @@ import * as backend from './build/index.main.mjs';
         moveLimit: 20
       }),
       observeMove: (move) => {
-        console.log(`Move: ${move}`);
+        console.log(`Move: ${moves[move-1]}`);
       },  
       observeGameFinish: () => {
         console.log("Game has finished");
@@ -26,10 +28,12 @@ import * as backend from './build/index.main.mjs';
     }),
     backend.Player(ctcPlayer, {
       confirmMove: (payoutPerDuration) => {
-        return [true, 2, 5, 10];
+        const move = (Math.floor(Math.random() * 5)+1);
+        // confirmMove = Fun([UInt], Tuple(Bool, (move) UInt, (duration) UInt, (toPay) UInt))
+        return [true, move, 5, 5*move];
       }
     }),
   ]);
 
-  console.log('Hello, Alice and Bob!');
+  console.log('[DEBUG] Game has finished.');
 })();

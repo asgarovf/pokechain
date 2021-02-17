@@ -4,6 +4,18 @@ import * as backend from './build/index.main.mjs';
 const moves = ['Forwards', 'Backwards', 'Left', 'Right', 'A Button'];
 const numOfPlayers = 10;
 var gameList = [];
+var nameList = {
+  0: "Glenda",
+  1: "Florence",
+  2: "Lionel",
+  3: "Tiffany",
+  4: "Orson",
+  5: "Todd",
+  6: "Ronny",
+  7: "Margaretta",
+  8: "Alice",
+  9: "Bob",
+};
 
 (async () => {
   const stdlib = await loadStdlib();
@@ -25,8 +37,8 @@ var gameList = [];
       observeMove: (movesList) => {
         // * Operate on array here * //
         // TODO: API call POST(move) setMove
-        console.log(`Observer observed the moveList with length ${gameList.length}"`);  
-        console.log(`move`);     
+        console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
+        console.log(`Moves in UInt: ${gameList} \n-----\n`);     
         gameList = [];
       },  
       observeGameFinish: () => {
@@ -39,8 +51,9 @@ var gameList = [];
 
     return backend.Player(ctcPlayer, {
       confirmMove: (payoutPerDuration) => {
+        const name = (i in nameList) ? nameList[i] : "Make a function here";
         const move = (Math.floor(Math.random() * 5)+1);
-        console.log(`Player ${i} played to move "${moves[move-1]}"`);
+        console.log(`${name} (Player ${i}) played to move "${moves[move-1]}"`);
         gameList.push(move);
         return [true, move, 5, 5*move];
       }

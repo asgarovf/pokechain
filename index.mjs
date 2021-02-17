@@ -52,6 +52,11 @@ var nameList = {
     return backend.Player(ctcPlayer, {
       confirmMove: (payoutPerDuration) => {
         const name = (i in nameList) ? nameList[i] : "Make a function here";
+        if(Math.random() < 0.2){
+          console.log(`${name} (Player ${i}) refused to make a move`);
+          return [false, 0, 1, 0];
+        }
+
         const move = (Math.floor(Math.random() * 5)+1);
         console.log(`${name} (Player ${i}) played to move "${moves[move-1]}"`);
         gameList.push(move);

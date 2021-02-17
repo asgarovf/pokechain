@@ -68,7 +68,9 @@
   
   * For test purposes players return random numbers
   
-  TODO: Make players return false
+  TODO: Make players return single values, store it in the frontend
+
+  TODO: (Experimental) Define an another function for acceptin to make a move. 
   
  */ 
 
@@ -93,7 +95,8 @@ export const main = Reach.App(
     ['class', 'Player', PlayerInterface]
   ], 
   (Observer, Player) => {
-    // TODO: Clean moveLimit in this version
+    // TODO: Clean moveLimit in this version.
+    // ! Don't touch the moveLimit instead, get rid of totalMove by making frontend more dominant
     Observer.only(() => {
       const _params = interact.getParams;
       assume(_params.moveLimit > 0);

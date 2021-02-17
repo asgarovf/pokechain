@@ -85,6 +85,7 @@ export const main = Reach.App(
     require(moveLimit >= 1);
 
     var game = ({
+      moveList: Array.replicate(moveLimit, 0),
       movePlayed: 0,
       totalPayout: 0
     });
@@ -110,6 +111,7 @@ export const main = Reach.App(
         Observer.publish();
 
         game = {
+          moveList: response ? game.moveList.set(movePlayed, move) : game.moveList,
           movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
           totalPayout: add(game.totalPayout, toPay)
         };

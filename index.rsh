@@ -56,6 +56,22 @@
   
 */
 
+// ! Code needs to be brutally refactored
+/*
+  * For now totalTurns must be defined before-hand.
+  * Also frontend must define the player count either 
+    ? - 1. By embeding it to the frontend code
+    ? - 2. By asking it before the game starts
+
+  * Every turn players add their moves to a list in the frontend and observer
+  * pushes this list to the server by an API call (Not implemented yet).
+  
+  * For test purposes players return random numbers
+  
+  TODO: Make players return false
+  
+ */ 
+
 const totalTurns = 10;
 
 const ObserverInterface = {

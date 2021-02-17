@@ -77,7 +77,6 @@ export const main = Reach.App(
   (Observer, Player) => {
     Observer.only(() => {
       const _params = interact.getParams;
-      // !! Check params.moveLimit 
       assume(_params.moveLimit > 0);
       const [payoutPerDuration, moveLimit] = declassify([_params.payoutPerDuration, _params.moveLimit]);
     });

@@ -25,7 +25,7 @@
   * Data Definition
   duration: UInt
   move: UInt
-  payoutPerDonation: UInt
+  payoutPerDuration: UInt
   moveLimit: UInt
 
   * Participate Interfaces
@@ -39,7 +39,7 @@
 
   ? Player 
   {
-    confirmMove = Fun([UInt], Tuple(Bool, (move) UInt, (duration) UInt))
+    confirmMove = Fun([UInt], Tuple(Bool, (move) UInt, (duration) UInt, (toPay) UInt))
   }
 
   * Communication Construction
@@ -66,43 +66,58 @@ const ObserverInterface = {
 };
 
 const PlayerInterface = {
-  confirmMove: Fun([UInt], Object({ 
-    response: Bool,
-    move: UInt,
-    duration: UInt
-  }))
+  confirmMove: Fun([UInt], Tuple(Bool, UInt, UInt, UInt))
 };
 
 export const main = Reach.App(
-  {}, [['Observer', ObserverInterface], ['class', 'Player', PlayerInterface]], (Observer, Player) => {
+  {}, [
+    ['Observer', ObserverInterface], 
+    ['class', 'Player', PlayerInterface]
+  ], 
+  (Observer, Player) => {
     Observer.only(() => {
       const _params = interact.getParams;
+      // !! Check params.moveLimit 
+      assume(_params.moveLimit > 0);
       const [payoutPerDuration, moveLimit] = declassify([_params.payoutPerDuration, _params.moveLimit]);
     });
     Observer.publish(payoutPerDuration, moveLimit);
 
-    var [movePlayed, totalPayout] = [0, 0];
-    invariant(balance() == totalPayout);
-    while(movePlayed < moveLimit) {
+    require(moveLimit >= 1);
+
+    var game = ({
+      movePlayed: 0,
+      totalPayout: 0
+    });
+    invariant(balance() == game.totalPayout);
+    while(game.movePlayed < moveLimit) {
         commit();
 
         Player.only(() => {
-          const _pMove = interact.confirmMove(payoutPerDuration);
-          const pMove = declassify(_pMove);
+          const [_response, _move, _duration, _toPay] = interact.confirmMove(payoutPerDuration);
+          assume((_response && (_toPay > 0)) || (!_response && (_toPay == 0)));
+          const [response, move, duration, toPay] = declassify([_response, _move, _duration, _toPay]);
         });
-        Player.publish(pMove)
-          .pay((pMove.duration * payoutPerDuration));
+        Player.publish(response, move, duration, toPay)
+          .pay(toPay);
 
         commit();
 
         Observer.only(() => {
-          interact.observeMove(pMove.move);
+          if(response) {
+            interact.observeMove(move);
+          }
         });
         Observer.publish();
 
-        [movePlayed, totalPayout] = pMove.response ? [movePlayed+1, totalPayout+(pMove.duration * payoutPerDuration)] : [movePlayed, totalPayout];
-
+        game = {
+          movePlayed: response ? add(game.movePlayed, 1) : game.movePlayed,
+          totalPayout: add(game.totalPayout, toPay)
+        };
         continue;
     }
+
+    transfer(balance()).to(Observer);
+    commit();
   }
 );

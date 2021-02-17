@@ -85,6 +85,7 @@ const ObserverInterface = {
   observeGameFinish: Fun([], Null)
 };
 
+// TODO: Add acceptMove function and refactor confirmMove to getMove
 const PlayerInterface = {
   confirmMove: Fun([UInt], Tuple(Bool, UInt, UInt, UInt))
 };
@@ -115,6 +116,7 @@ export const main = Reach.App(
     while(game.movePlayed < totalTurns) {
         commit();
 
+        // TODO: (After interface update) Rearrange the arrow function to branch depending if player accepts or not.  
         Player.only(() => {
           const [_response, _move, _duration, _toPay] = interact.confirmMove(payoutPerDuration);
           assume((_response && (_toPay > 0)) || (!_response && (_toPay == 0)));
@@ -137,6 +139,9 @@ export const main = Reach.App(
           }
         });
         Observer.publish();
+
+        //? If needed we can make it more clear that every player in the dApp observes the moveList
+        //? by committing and adding a Player.only statement
 
         game = afterGame;
 

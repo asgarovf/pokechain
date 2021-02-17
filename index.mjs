@@ -25,7 +25,8 @@ var gameList = [];
       observeMove: (movesList) => {
         // * Operate on array here * //
         // TODO: API call POST(move) setMove
-        console.log(`Observer observed the moveList with length ${gameList.length}"`);       
+        console.log(`Observer observed the moveList with length ${gameList.length}"`);  
+        console.log(`move`);     
         gameList = [];
       },  
       observeGameFinish: () => {

@@ -4,21 +4,10 @@ import { ask, yesno, done } from '@reach-sh/stdlib/ask.mjs';
 
 
 // ! A range check is necessary
-const moves = ['Forwards', 'Backwards', 'Left', 'Right', 'A Button', 'B Button'];
+const moves = ['Up', 'Down', 'Left', 'Right', 'A Button', 'B Button'];
 const numOfPlayers = 10;
-var gameList = [];
-var nameList = {
-  0: "Glenda",
-  1: "Florence",
-  2: "Lionel",
-  3: "Tiffany",
-  4: "Orson",
-  5: "Todd",
-  6: "Ronny",
-  7: "Margaretta",
-  8: "Alice",
-  9: "Bob",
-};
+
+var moveList = [];
 
 function printSplash() {
   console.log("────────▄███████████▄─────────────────────────────────────");
@@ -62,7 +51,8 @@ async function getName () {
 }
 
 (async () => {
-  console.log("Starting iteration v1.05");
+  printSplash();
+  console.log("Starting iteration v1.07");
   const stdlib = await loadStdlib();
 
   const isObserver = await ask(
@@ -123,13 +113,25 @@ async function getName () {
         });
     };
 
+    interact.getMoves = (totalPlayers) => {
+      if(moveList.length == []) {
+          console.log("[DEBUG] moveList length is 0");
+          for (let i = 0; i < totalPlayers; i++) {
+            moveList.push(0);
+          }
+          return moveList;
+      } 
+      console.log("[DEBUG] moveList is populated");
+      return moveList;
+    };
+
+    interact.observeLoopFinish = () => console.log("[DEBUG] Loop finish");
+
     interact.observeMoves = (movesList) => {
+        moveList = movesList;
         // * Operate on array here * //
         // TODO: API call POST(move) setMove
-        console.log(`\n-----\nMoves List: \n${movesList}\n-----\n`);
-        // console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
-        // console.log(`Moves in UInt: ${gameList} \n-----\n`);     
-        // gameList = [];
+        console.log(`\n-----\nMoves List: \n${movesList}\n-----`);
     };
 
     interact.observeGameFinish = () => {
@@ -144,7 +146,7 @@ async function getName () {
     const name = await getName();
     interact.acceptMove = async (payoutPerDuration) => {
         const response = await ask(
-          `You need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
+          `\nYou need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
           yesno
         );
 
@@ -170,7 +172,6 @@ async function getName () {
         );
 
         console.log(`${name} played to move "${moves[move-1]}"`);
-        gameList.push(move);
         return [move, duration, duration*move];
     };
   }

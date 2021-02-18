@@ -74,7 +74,7 @@
   TODO: change it and then send it back to Observer. Make interface for that
   TODO: Make it work in the while-loop(I guess)
 
-  TODO: Rethink the term concept in the game.
+  TODO: Rethink the turn concept in the game.
   TODO: Maybe while is looping every move.
 
   TODO: (SECOND STEP) Add race to the game
@@ -88,8 +88,11 @@ const ObserverInterface = {
     moveLimit: UInt,
   })),
   observeMoves: Fun([Array(UInt, totalPlayers)], Null),  
+  getMoves: Fun([UInt], Array(UInt, totalPlayers)),
   observeGameFinish: Fun([], Null),
   observeTurnStart: Fun([UInt], Null),
+  // ? DEBUG
+  observeLoopFinish: Fun([], Null),
 };
 
 const PlayerInterface = {
@@ -110,7 +113,7 @@ export const main = Reach.App(
     });
     Observer.publish(payoutPerDuration, moveLimit);
 
-    require(moveLimit >= 1);
+    require(moveLimit > 0);
 
     var game = ({
       moveList: Array.replicate(totalPlayers, 0),
@@ -121,8 +124,11 @@ export const main = Reach.App(
     while(game.movePlayed < moveLimit) {
         commit();
 
-        Observer.only(()=>{interact.observeTurnStart(game.movePlayed)});
-        Observer.publish();
+        Observer.only(()=>{
+          interact.observeTurnStart(game.movePlayed);
+          const observedMoveList = declassify(interact.getMoves(totalPlayers));
+        });
+        Observer.publish(observedMoveList);
         commit();
 
         Player.only(() => {
@@ -136,17 +142,23 @@ export const main = Reach.App(
           commit();
 
           // TODO: race(Player).publish(move, duration, toPay);
+          // TODO: this part MAY be working every time a player makes a move. So there's no real need to transfer moves. Have to think about it 
 
           Player.only(() => {
+            // Make player take the list, read it and change the 
             const [_move, _duration, _toPay] = interact.getMove();
             assume(_move > 0 && _duration > 0 && _toPay > 0, "[ERROR] Invalid Move");
             const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
           });
           Player.publish(move, duration, toPay)
             .pay(toPay);
+          
+          commit();
+          Observer.only(() => {interact.observeLoopFinish();});
+          Observer.publish();
 
           const afterGame = {
-            moveList: game.moveList.set(mod(game.movePlayed, totalPlayers), move),
+            moveList: observedMoveList.set(mod(game.movePlayed, totalPlayers), move),
             movePlayed: add(game.movePlayed, 1),
             totalPayout: add(game.totalPayout, toPay)
           };
@@ -155,7 +167,7 @@ export const main = Reach.App(
 
           Observer.only(() => {
             if(response) {
-              interact.observeMoves(game.moveList);
+              interact.observeMoves(afterGame.moveList);
             }  
           });
           Observer.publish();  

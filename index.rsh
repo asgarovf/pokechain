@@ -70,8 +70,14 @@
   
   TODO: Make players return single values, store it in the frontend
 
-  TODO: parseCurrency
-  TODO: docker-compose
+  TODO: (IMPORTANT) Make players get the list from Observer, 
+  TODO: change it and then send it back to Observer. Make interface for that
+  TODO: Make it work in the while-loop(I guess)
+
+  TODO: Rethink the term concept in the game.
+  TODO: Maybe while is looping every move.
+
+  TODO: (SECOND STEP) Add race to the game
  */ 
 
 const totalPlayers = 10;
@@ -137,7 +143,7 @@ export const main = Reach.App(
             const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
           });
           Player.publish(move, duration, toPay)
-            .pay(toPay);;
+            .pay(toPay);
 
           const afterGame = {
             moveList: game.moveList.set(mod(game.movePlayed, totalPlayers), move),

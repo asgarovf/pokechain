@@ -73,13 +73,13 @@ function printMoves () {
     backend.Observer(ctcObserver, {
       getParams: async () => {
         const moveLimit = await ask("How many turns there will be?", parseInt);
-        const payoutPerDuration = await ask("What is the unit cost of the move?", parseInt);
+        const payoutPerDuration = await ask("What is the unit cost of the move?", parseFloat);
         return ({
-          payoutPerDuration: payoutPerDuration,
+          payoutPerDuration: Math.floor(stdlib.parseCurrency(payoutPerDuration)),
           moveLimit: moveLimit
         });
       },
-      observeMove: (movesList) => {
+      observeMoves: (movesList) => {
         // * Operate on array here * //
         // TODO: API call POST(move) setMove
         console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
@@ -91,7 +91,7 @@ function printMoves () {
         // TODO: API call POST() gameFinish
       },
       observeTurnStart: (turnNum) => {
-        console.log(`\n-----\nStart of Turn ${turnNum}\n-----\n`);
+        console.log(`\n-----\nStart of Turn ${turnNum+1}\n-----\n`);
       }
     })
   ].concat(playerArray.map((player, i) => {
@@ -100,7 +100,7 @@ function printMoves () {
     return backend.Player(ctcPlayer, {
       acceptMove: async (payoutPerDuration) => {
         const response = await ask(
-          `You need to pay ${payoutPerDuration} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
+          `You need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
           yesno
         );
 
@@ -112,6 +112,7 @@ function printMoves () {
         return response;
       },
       getMove: async () => {
+        // TODO: Make a function here
         const name = (i in nameList) ? nameList[i] : "Make a function here";
         
         printMoves();
@@ -120,8 +121,8 @@ function printMoves () {
           "Which move do you want to play?",
           parseInt
         );
-        // TODO: 
-
+        
+        // TODO: Range check
         const duration = await ask(
           "How long do you want your input to be?",
           parseInt
@@ -133,8 +134,6 @@ function printMoves () {
       }
     });
   })));
-
-
 
   console.log('[DEBUG] Game has finished.');
 })();

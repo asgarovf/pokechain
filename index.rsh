@@ -70,23 +70,22 @@
   
   TODO: Make players return single values, store it in the frontend
 
-  TODO: (Experimental) Define an another function for acceptin to make a move. 
-  
+  TODO: parseCurrency
+  TODO: docker-compose
  */ 
 
-const totalTurns = 10;
+const totalPlayers = 10;
 
 const ObserverInterface = {
   getParams: Fun([],Object({
     payoutPerDuration: UInt,
     moveLimit: UInt,
   })),
-  observeMove: Fun([Array(UInt, totalTurns)], Null),  
+  observeMoves: Fun([Array(UInt, totalPlayers)], Null),  
   observeGameFinish: Fun([], Null),
   observeTurnStart: Fun([UInt], Null),
 };
 
-// TODO: Add acceptMove function and refactor confirmMove to getMove
 const PlayerInterface = {
   acceptMove: Fun([UInt], Bool),
   getMove: Fun([], Tuple( UInt, UInt, UInt))
@@ -98,8 +97,6 @@ export const main = Reach.App(
     ['class', 'Player', PlayerInterface]
   ], 
   (Observer, Player) => {
-    // TODO: Clean moveLimit in this version.
-    // ! Don't touch the moveLimit instead, get rid of totalMove by making frontend more dominant
     Observer.only(() => {
       const _params = interact.getParams();
       assume(_params.moveLimit > 0);
@@ -110,19 +107,18 @@ export const main = Reach.App(
     require(moveLimit >= 1);
 
     var game = ({
-      moveList: Array.replicate(totalTurns, 0),
+      moveList: Array.replicate(totalPlayers, 0),
       movePlayed: 0,
       totalPayout: 0
     });
     invariant(balance() == game.totalPayout);
-    while(game.movePlayed < totalTurns) {
+    while(game.movePlayed < moveLimit) {
         commit();
 
         Observer.only(()=>{interact.observeTurnStart(game.movePlayed)});
         Observer.publish();
         commit();
 
-        // TODO: (After interface update) Rearrange the arrow function to branch depending if player accepts or not.  
         Player.only(() => {
           const response = declassify(interact.acceptMove(payoutPerDuration));
         });
@@ -144,7 +140,7 @@ export const main = Reach.App(
             .pay(toPay);;
 
           const afterGame = {
-            moveList: game.moveList.set(game.movePlayed, move),
+            moveList: game.moveList.set(mod(game.movePlayed, totalPlayers), move),
             movePlayed: add(game.movePlayed, 1),
             totalPayout: add(game.totalPayout, toPay)
           };
@@ -153,8 +149,8 @@ export const main = Reach.App(
 
           Observer.only(() => {
             if(response) {
-              interact.observeMove(afterGame.moveList);
-            }
+              interact.observeMoves(game.moveList);
+            }  
           });
           Observer.publish();  
 
@@ -178,5 +174,10 @@ export const main = Reach.App(
 
     transfer(balance()).to(Observer);
     commit();
+
+    Observer.only(() => {
+      interact.observeGameFinish();
+    });
+    exit();
   }
 );

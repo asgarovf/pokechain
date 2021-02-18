@@ -56,65 +56,106 @@ function printMoves () {
   console.log(" (_/______________________/\n");
 }
 
+async function getName () {
+  let name = await ask("Please enter your name", ((x) => x));
+  return name;
+}
+
 (async () => {
+  console.log("Starting iteration v1.05");
   const stdlib = await loadStdlib();
-  const startingBalance = stdlib.parseCurrency(100);
 
-  const observer = await stdlib.newTestAccount(startingBalance);
-  const playerArray = await Promise.all(
-    Array.from({length:10 }, () => stdlib.newTestAccount(startingBalance))
+  const isObserver = await ask(
+    `Are you the Observer?`,
+    yesno
   );
+  const who = isObserver ? 'Observer' : 'Player';
 
-  const ctcObserver = observer.deploy(backend);
+  console.log(`\nStarting Pokéchain as ${who}`);
+
+  let acc = null;
+  const createAcc = await ask(
+    `\nWould you like to create an account? (only possible on devnet)`,
+    yesno
+  );
+  if (createAcc) {
+    acc = await stdlib.newTestAccount(stdlib.parseCurrency(1000));
+  } else {
+    const secret = await ask(
+      `What is your account secret?`,
+      (x => x)
+    );
+    acc = await stdlib.newAccountFromSecret(secret);
+  }
+
+  let ctc = null;
+  const deployCtc = await ask(
+    `\nDo you want to deploy the contract? (y/n)`,
+    yesno
+  );
+  if (deployCtc) {
+    ctc = acc.deploy(backend);
+    const info = await ctc.getInfo();
+    console.log(`\nThe contract is deployed as = ${JSON.stringify(info)}`);
+  } else {
+    const info = await ask(
+      `\nPlease paste the contract information:`,
+      JSON.parse
+    );
+    ctc = acc.attach(backend, info);
+  }
   
-  printSplash();
+  const fmt = (x) => stdlib.formatCurrency(x, 4);
+  const getBalance = async () => fmt(await stdlib.balanceOf(acc));
 
-  await Promise.all([
-    backend.Observer(ctcObserver, {
-      getParams: async () => {
+  const before = await getBalance();
+  console.log(`\nYour balance is ${before}`);
+
+  const interact = {};
+
+  if(isObserver) {
+    interact.getParams = async () => {
         const moveLimit = await ask("How many turns there will be?", parseInt);
-        const payoutPerDuration = await ask("What is the unit cost of the move?", parseFloat);
+        const payoutPerDuration = await ask("What is the unit cost of the move?", stdlib.parseCurrency);
         return ({
-          payoutPerDuration: Math.floor(stdlib.parseCurrency(payoutPerDuration)),
-          moveLimit: moveLimit
+            payoutPerDuration: payoutPerDuration,
+            moveLimit: moveLimit
         });
-      },
-      observeMoves: (movesList) => {
+    };
+
+    interact.observeMoves = (movesList) => {
         // * Operate on array here * //
         // TODO: API call POST(move) setMove
-        console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
-        console.log(`Moves in UInt: ${gameList} \n-----\n`);     
-        gameList = [];
-      },  
-      observeGameFinish: () => {
+        console.log(`\n-----\nMoves List: \n${movesList}\n-----\n`);
+        // console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
+        // console.log(`Moves in UInt: ${gameList} \n-----\n`);     
+        // gameList = [];
+    };
+
+    interact.observeGameFinish = () => {
         console.log("Game has finished");
         // TODO: API call POST() gameFinish
-      },
-      observeTurnStart: (turnNum) => {
-        console.log(`\n-----\nStart of Turn ${turnNum+1}\n-----\n`);
-      }
-    })
-  ].concat(playerArray.map((player, i) => {
-    const ctcPlayer = player.attach(backend, ctcObserver.getInfo());
+    };
 
-    return backend.Player(ctcPlayer, {
-      acceptMove: async (payoutPerDuration) => {
+    interact.observeTurnStart = (turnNum) => {
+        console.log(`\n-----\nStart of Turn ${turnNum}\n-----\n`);
+    };
+  } else {
+    const name = await getName();
+    interact.acceptMove = async (payoutPerDuration) => {
         const response = await ask(
           `You need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
           yesno
         );
 
         if (!response) {
-          const name = (i in nameList) ? nameList[i] : "Make a function here";
-          console.log(`\n${name} (Player ${i}) refused to make a move.`);
+          console.log(`\n${name} refused to make a move.`);
         }
 
         return response;
-      },
-      getMove: async () => {
-        // TODO: Make a function here
-        const name = (i in nameList) ? nameList[i] : "Make a function here";
-        
+    };
+    interact.getMove = async () => {
+        // TODO: Make a function here        
         printMoves();
 
         const move = await ask(
@@ -128,12 +169,98 @@ function printMoves () {
           parseInt
         );
 
-        console.log(`${name} (Player ${i}) played to move "${moves[move-1]}"`);
+        console.log(`${name} played to move "${moves[move-1]}"`);
         gameList.push(move);
         return [move, duration, duration*move];
-      }
-    });
-  })));
+    };
+  }
+
+  const part = isObserver ? backend.Observer : backend.Player;
+  await part(ctc, interact);
+
+  const after = await getBalance();
+  console.log(`Your balance is now ${after}`);
+
+  done();
 
   console.log('[DEBUG] Game has finished.');
 })();
+
+// #################################################
+
+//   const startingBalance = stdlib.parseCurrency(100);
+
+//   const observer = await stdlib.newTestAccount(startingBalance);
+//   const playerArray = await Promise.all(
+//     Array.from({length:10 }, () => stdlib.newTestAccount(startingBalance))
+//   );
+
+//   const ctcObserver = observer.deploy(backend);
+  
+//   printSplash();
+
+//   await Promise.all([
+//     backend.Observer(ctcObserver, {
+//       getParams: async () => {
+//         const moveLimit = await ask("How many turns there will be?", parseInt);
+//         const payoutPerDuration = await ask("What is the unit cost of the move?", parseFloat);
+//         return ({
+//           payoutPerDuration: Math.floor(stdlib.parseCurrency(payoutPerDuration)),
+//           moveLimit: moveLimit
+//         });
+//       },
+//       observeMoves: (movesList) => {
+//         // * Operate on array here * //
+//         // TODO: API call POST(move) setMove
+//         console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
+//         console.log(`Moves in UInt: ${gameList} \n-----\n`);     
+//         gameList = [];
+//       },  
+//       observeGameFinish: () => {
+//         console.log("Game has finished");
+//         // TODO: API call POST() gameFinish
+//       },
+//       observeTurnStart: (turnNum) => {
+//         console.log(`\n-----\nStart of Turn ${turnNum+1}\n-----\n`);
+//       }
+//     })
+//   ].concat(playerArray.map((player, i) => {
+//     const ctcPlayer = player.attach(backend, ctcObserver.getInfo());
+
+//     return backend.Player(ctcPlayer, {
+//       acceptMove: async (payoutPerDuration) => {
+//         const response = await ask(
+//           `You need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
+//           yesno
+//         );
+
+//         if (!response) {
+//           const name = (i in nameList) ? nameList[i] : "Make a function here";
+//           console.log(`\n${name} (Player ${i}) refused to make a move.`);
+//         }
+
+//         return response;
+//       },
+//       getMove: async () => {
+//         // TODO: Make a function here
+//         const name = (i in nameList) ? nameList[i] : "Make a function here";
+        
+//         printMoves();
+
+//         const move = await ask(
+//           "Which move do you want to play?",
+//           parseInt
+//         );
+        
+//         // TODO: Range check
+//         const duration = await ask(
+//           "How long do you want your input to be?",
+//           parseInt
+//         );
+
+//         console.log(`${name} (Player ${i}) played to move "${moves[move-1]}"`);
+//         gameList.push(move);
+//         return [move, duration, duration*move];
+//       }
+//     });
+//   })));

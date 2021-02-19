@@ -70,9 +70,11 @@
   
   TODO: Make players return single values, store it in the frontend
 
-  TODO: (IMPORTANT) Make players get the list from Observer, 
-  TODO: change it and then send it back to Observer. Make interface for that
-  TODO: Make it work in the while-loop(I guess)
+  FINISHED: (IMPORTANT) Make players get the list from Observer, 
+  change it and then send it back to Observer. Make interface for that
+  Make it work in the while-loop(I guess)
+
+  TODO: Try to observe one move at a time (again)
 
   TODO: Rethink the turn concept in the game.
   TODO: Maybe while is looping every move.

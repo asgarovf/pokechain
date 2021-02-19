@@ -6,6 +6,7 @@ import { ask, yesno, done } from '@reach-sh/stdlib/ask.mjs';
 // ! A range check is necessary
 const moves = ['Forwards', 'Backwards', 'Left', 'Right', 'A Button', 'B Button'];
 const numOfPlayers = 10;
+// TODO: Delete these
 var gameList = [];
 var nameList = {
   0: "Glenda",
@@ -19,6 +20,8 @@ var nameList = {
   8: "Alice",
   9: "Bob",
 };
+
+var moveList = [];
 
 function printSplash() {
   console.log("────────▄███████████▄─────────────────────────────────────");

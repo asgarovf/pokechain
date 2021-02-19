@@ -68,13 +68,13 @@
   
   * For test purposes players return random numbers
   
-  TODO: Make players return single values, store it in the frontend
+  FINISHED: Make players return single values, store it in the frontend
 
   FINISHED: (IMPORTANT) Make players get the list from Observer, 
   change it and then send it back to Observer. Make interface for that
   Make it work in the while-loop(I guess)
 
-  TODO: Try to observe one move at a time (again)
+  FINISHED: Try to observe one move at a time (again)
 
   TODO: Rethink the turn concept in the game.
   TODO: Maybe while is looping every move.

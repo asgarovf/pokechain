@@ -89,6 +89,7 @@ const ObserverInterface = {
     payoutPerDuration: UInt,
     moveLimit: UInt,
   })),
+  // TODO: Change name, params
   observeMoves: Fun([Array(UInt, totalPlayers)], Null),  
   getMoves: Fun([UInt], Array(UInt, totalPlayers)),
   observeGameFinish: Fun([], Null),
@@ -99,7 +100,7 @@ const ObserverInterface = {
 
 const PlayerInterface = {
   acceptMove: Fun([UInt], Bool),
-  getMove: Fun([], Tuple( UInt, UInt, UInt))
+  getMove: Fun([], Tuple(UInt, UInt, UInt))
 };
 
 export const main = Reach.App(
@@ -126,6 +127,7 @@ export const main = Reach.App(
     while(game.movePlayed < moveLimit) {
         commit();
 
+        // TODO: Delete
         Observer.only(()=>{
           interact.observeTurnStart(game.movePlayed);
           const observedMoveList = declassify(interact.getMoves(totalPlayers));
@@ -159,6 +161,7 @@ export const main = Reach.App(
           Observer.only(() => {interact.observeLoopFinish();});
           Observer.publish();
 
+          // TODO: Delete moveList
           const afterGame = {
             moveList: observedMoveList.set(mod(game.movePlayed, totalPlayers), move),
             movePlayed: add(game.movePlayed, 1),
@@ -167,6 +170,7 @@ export const main = Reach.App(
 
           commit();
 
+          // TODO: Change argument
           Observer.only(() => {
             if(response) {
               interact.observeMoves(afterGame.moveList);

@@ -112,19 +112,6 @@ async function getName () {
             moveLimit: moveLimit
         });
     };
-
-    interact.getMoves = (totalPlayers) => {
-      if(moveList.length == []) {
-          console.log("[DEBUG] moveList length is 0");
-          for (let i = 0; i < totalPlayers; i++) {
-            moveList.push(0);
-          }
-          return moveList;
-      } 
-      console.log("[DEBUG] moveList is populated");
-      return moveList;
-    };
-
     interact.observeLoopFinish = () => console.log("[DEBUG] Loop finish");
 
     // TODO: Change name and var type
@@ -132,12 +119,9 @@ async function getName () {
         // TODO: moveList.push(move)
         moveList.push(move);
         // TODO: Print move
-        console.log(`\n-----\nObserver observed the move ${moves[move-1]}.\n-----`);
+        console.log(`\n-----\nObserver observed the move ${moves[move-1]}.`);
+        console.log(`Move count: ${moveList.length}\n-----`);
         // TODO: Send move to the API 
-        // moveList = movesList;
-        // // * Operate on array here * //
-        // // TODO: API call POST(move) setMove
-        // console.log(`\n-----\nMoves List: \n${movesList}\n-----`);
     };
 
     interact.observeGameFinish = () => {

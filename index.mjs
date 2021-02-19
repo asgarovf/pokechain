@@ -128,14 +128,16 @@ async function getName () {
     interact.observeLoopFinish = () => console.log("[DEBUG] Loop finish");
 
     // TODO: Change name and var type
-    interact.observeMoves = (movesList) => {
+    interact.observeMove = (move) => {
         // TODO: moveList.push(move)
+        moveList.push(move);
         // TODO: Print move
+        console.log(`\n-----\nObserver observed the move ${moves[move-1]}.\n-----`);
         // TODO: Send move to the API 
-        moveList = movesList;
-        // * Operate on array here * //
-        // TODO: API call POST(move) setMove
-        console.log(`\n-----\nMoves List: \n${movesList}\n-----`);
+        // moveList = movesList;
+        // // * Operate on array here * //
+        // // TODO: API call POST(move) setMove
+        // console.log(`\n-----\nMoves List: \n${movesList}\n-----`);
     };
 
     interact.observeGameFinish = () => {

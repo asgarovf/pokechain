@@ -90,7 +90,7 @@ const ObserverInterface = {
     moveLimit: UInt,
   })),
   // TODO: Change name, params
-  observeMoves: Fun([Array(UInt, totalPlayers)], Null),  
+  observeMove: Fun([UInt], Null),  
   getMoves: Fun([UInt], Array(UInt, totalPlayers)),
   observeGameFinish: Fun([], Null),
   observeTurnStart: Fun([UInt], Null),
@@ -128,12 +128,6 @@ export const main = Reach.App(
         commit();
 
         // TODO: Delete
-        Observer.only(()=>{
-          interact.observeTurnStart(game.movePlayed);
-          const observedMoveList = declassify(interact.getMoves(totalPlayers));
-        });
-        Observer.publish(observedMoveList);
-        commit();
 
         Player.only(() => {
           const response = declassify(interact.acceptMove(payoutPerDuration));
@@ -173,7 +167,7 @@ export const main = Reach.App(
           // TODO: Change argument
           Observer.only(() => {
             if(response) {
-              interact.observeMoves(afterGame.moveList);
+              interact.observeMove(move);
             }  
           });
           Observer.publish();  

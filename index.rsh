@@ -144,8 +144,9 @@ export const main = Reach.App(
             assume(_move > 0 && _duration > 0 && _toPay > 0, "[ERROR] Invalid Move");
             const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
           });
-          Player.publish(move, duration, toPay)
-            .pay( toPay);
+          race(Player).publish(move,duration,toPay).pay(toPay);
+          // Player.publish(move, duration, toPay)
+          //   .pay( toPay);
           
           commit();
           Observer.only(() => interact.observeLoopFinish());

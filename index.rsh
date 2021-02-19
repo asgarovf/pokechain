@@ -98,7 +98,8 @@ const ObserverInterface = {
 
 const PlayerInterface = {
   acceptMove: Fun([UInt], Bool),
-  getMove: Fun([], Tuple(UInt, UInt, UInt))
+  getMove: Fun([], Tuple(UInt, UInt, UInt)),
+  observeLoopFinish: Fun([], Null),
 };
 
 export const main = Reach.App(
@@ -144,11 +145,16 @@ export const main = Reach.App(
             const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
           });
           Player.publish(move, duration, toPay)
-            .pay(toPay);
+            .pay( toPay);
           
           commit();
-          Observer.only(() => {interact.observeLoopFinish();});
+          Observer.only(() => interact.observeLoopFinish());
           Observer.publish();
+
+          commit();
+          Player.only(() => interact.observeLoopFinish());
+          Player.publish();
+
           const afterGame = {
             movePlayed: add(game.movePlayed, 1),
             totalPayout: add(game.totalPayout, toPay)

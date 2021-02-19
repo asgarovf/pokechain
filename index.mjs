@@ -52,7 +52,7 @@ async function getName () {
 
 (async () => {
   printSplash();
-  console.log("Starting iteration v1.07");
+  console.log("Starting iteration v1.08");
   const stdlib = await loadStdlib();
 
   const isObserver = await ask(
@@ -146,6 +146,8 @@ async function getName () {
 
         return response;
     };
+    interact.observeLoopFinish = () => console.log(`Player observed loop finish`);
+
     interact.getMove = async () => {
         // TODO: Make a function here        
         printMoves();
@@ -154,6 +156,8 @@ async function getName () {
           "Which move do you want to play?",
           parseInt
         );
+
+        // TODO: Player movePlayed index check
         
         // TODO: Range check
         const duration = await ask(
@@ -162,7 +166,8 @@ async function getName () {
         );
 
         console.log(`${name} played to move "${moves[move-1]}"`);
-        return [move, duration, duration*move];
+        console.log(`move: ${move}, duration: ${duration}, product: ${duration*move}`);
+        return [move, duration, stdlib.parseCurrency(duration*move)];
     };
   }
 
@@ -176,82 +181,3 @@ async function getName () {
 
   console.log('[DEBUG] Game has finished.');
 })();
-
-// #################################################
-
-//   const startingBalance = stdlib.parseCurrency(100);
-
-//   const observer = await stdlib.newTestAccount(startingBalance);
-//   const playerArray = await Promise.all(
-//     Array.from({length:10 }, () => stdlib.newTestAccount(startingBalance))
-//   );
-
-//   const ctcObserver = observer.deploy(backend);
-  
-//   printSplash();
-
-//   await Promise.all([
-//     backend.Observer(ctcObserver, {
-//       getParams: async () => {
-//         const moveLimit = await ask("How many turns there will be?", parseInt);
-//         const payoutPerDuration = await ask("What is the unit cost of the move?", parseFloat);
-//         return ({
-//           payoutPerDuration: Math.floor(stdlib.parseCurrency(payoutPerDuration)),
-//           moveLimit: moveLimit
-//         });
-//       },
-//       observeMoves: (movesList) => {
-//         // * Operate on array here * //
-//         // TODO: API call POST(move) setMove
-//         console.log(`\n-----\nObserver observed the moveList with length ${gameList.length}"`);  
-//         console.log(`Moves in UInt: ${gameList} \n-----\n`);     
-//         gameList = [];
-//       },  
-//       observeGameFinish: () => {
-//         console.log("Game has finished");
-//         // TODO: API call POST() gameFinish
-//       },
-//       observeTurnStart: (turnNum) => {
-//         console.log(`\n-----\nStart of Turn ${turnNum+1}\n-----\n`);
-//       }
-//     })
-//   ].concat(playerArray.map((player, i) => {
-//     const ctcPlayer = player.attach(backend, ctcObserver.getInfo());
-
-//     return backend.Player(ctcPlayer, {
-//       acceptMove: async (payoutPerDuration) => {
-//         const response = await ask(
-//           `You need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
-//           yesno
-//         );
-
-//         if (!response) {
-//           const name = (i in nameList) ? nameList[i] : "Make a function here";
-//           console.log(`\n${name} (Player ${i}) refused to make a move.`);
-//         }
-
-//         return response;
-//       },
-//       getMove: async () => {
-//         // TODO: Make a function here
-//         const name = (i in nameList) ? nameList[i] : "Make a function here";
-        
-//         printMoves();
-
-//         const move = await ask(
-//           "Which move do you want to play?",
-//           parseInt
-//         );
-        
-//         // TODO: Range check
-//         const duration = await ask(
-//           "How long do you want your input to be?",
-//           parseInt
-//         );
-
-//         console.log(`${name} (Player ${i}) played to move "${moves[move-1]}"`);
-//         gameList.push(move);
-//         return [move, duration, duration*move];
-//       }
-//     });
-//   })));

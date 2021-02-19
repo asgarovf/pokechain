@@ -7,6 +7,8 @@ import { ask, yesno, done } from '@reach-sh/stdlib/ask.mjs';
 const moves = ['Up', 'Down', 'Left', 'Right', 'A Button', 'B Button'];
 const numOfPlayers = 10;
 
+// TODO: add const = movesPlayed for players side to debug
+
 var moveList = [];
 
 function printSplash() {
@@ -136,7 +138,7 @@ async function getName () {
     const name = await getName();
     interact.acceptMove = async (payoutPerDuration) => {
         const response = await ask(
-          `\nYou need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you want to make a move? (y/n)\n>> `,
+          `\nYou need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you confirm the move? (y/n)\n>> `,
           yesno
         );
 

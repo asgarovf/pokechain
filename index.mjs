@@ -54,7 +54,7 @@ async function getName () {
 
 (async () => {
   printSplash();
-  console.log("Starting iteration v1.08");
+  console.log("Starting iteration v1.09");
   const stdlib = await loadStdlib();
 
   const isObserver = await ask(
@@ -114,15 +114,12 @@ async function getName () {
             moveLimit: moveLimit
         });
     };
-    interact.observeLoopFinish = () => console.log("[DEBUG] Loop finish");
-
     // TODO: Change name and var type
-    interact.observeMove = (move) => {
+    interact.observeMove = (move, duration, toPay, name) => {
         // TODO: moveList.push(move)
         moveList.push(move);
         // TODO: Print move
-        console.log(`\n-----\nObserver observed the move ${moves[move-1]}.`);
-        console.log(`Move count: ${moveList.length}\n-----`);
+        console.log(`\n-----\nObserver observed the move ${moves[move-1]} from ${name}.`);
         // TODO: Send move to the API 
     };
 
@@ -148,10 +145,8 @@ async function getName () {
 
         return response;
     };
-    interact.observeLoopFinish = () => console.log(`Player observed loop finish`);
 
     interact.getMove = async () => {
-        // TODO: Make a function here        
         printMoves();
 
         const move = await ask(
@@ -159,17 +154,23 @@ async function getName () {
           parseInt
         );
 
-        // TODO: Player movePlayed index check
-        
+        // Player movePlayed index check
+        // let move = moves.length+1;
+        // while (move > moves.length) {
+        //   move = await ask(
+        //     "Which move do you want to play?",
+        //     parseInt
+        //   );
+        // }
         // TODO: Range check
+        
         const duration = await ask(
           "How long do you want your input to be?",
           parseInt
         );
 
-        console.log(`${name} played to move "${moves[move-1]}"`);
-        console.log(`move: ${move}, duration: ${duration}, product: ${duration*move}`);
-        return [move, duration, stdlib.parseCurrency(duration*move)];
+        console.log(`${name} played to move "${moves[move-1]}" for ${duration} seconds`);
+        return [move, duration, name];
     };
   }
 

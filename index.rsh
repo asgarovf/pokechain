@@ -76,10 +76,10 @@
 
   FINISHED: Try to observe one move at a time (again)
 
-  TODO: Rethink the turn concept in the game.
-  TODO: Maybe while is looping every move.
+  FINISHED: Rethink the turn concept in the game.
+  Maybe while is looping every move.
 
-  TODO: (SECOND STEP) Add race to the game
+  FINISHED: (SECOND STEP) Add race to the game
  */ 
 
 const totalPlayers = 10;
@@ -89,7 +89,7 @@ const ObserverInterface = {
     payoutPerDuration: UInt,
     moveLimit: UInt,
   })),
-  observeMove: Fun([UInt], Null),  
+  observeMove: Fun([UInt, UInt, UInt, Bytes(32)], Null),  
   observeGameFinish: Fun([], Null),
   observeTurnStart: Fun([UInt], Null),
   // ? DEBUG
@@ -98,7 +98,7 @@ const ObserverInterface = {
 
 const PlayerInterface = {
   acceptMove: Fun([UInt], Bool),
-  getMove: Fun([], Tuple(UInt, UInt, UInt)),
+  getMove: Fun([], Tuple(UInt, UInt, Bytes(32))),
   observeLoopFinish: Fun([], Null),
 };
 
@@ -123,25 +123,31 @@ export const main = Reach.App(
       .while(movePlayed < moveLimit)
       .case(Player,
         (() => {
-          const [_move, _duration, _toPay] = interact.getMove();
-          assume(_move > 0 && _duration > 0 && _toPay > 0, "[ERROR] Invalid Move");
-          const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
-          const _response = interact.acceptMove(payoutPerDuration);
-          const _result = _response && (movePlayed<moveLimit);
+          const [_move, _duration, _name] = interact.getMove();
+          assume(_move > 0 && _duration > 0, "[ERROR] Invalid Move");
+          const [move, duration, name] = declassify([_move, _duration, _name]);
+          const response = declassify(interact.acceptMove(payoutPerDuration));
           return ({
-            msg: [move, duration, toPay],
-            when: declassify(_result)
+            msg: [move, duration, mul(duration, payoutPerDuration), response, name],
+            //when: declassify(_result)
           });
-        }),
-        (([m, d, tp]) => tp),
-        (([m, d, tp]) => {
+        }), //* Local step
+        (([m, d, tp, r, n]) => 0), //* Pay step
+        (([m, d, tp, r, n]) => { // * Consensus step
           commit();
           Observer.only(() => {
-            // TODO: Change parameters
-            interact.observeMove(m);
+            interact.observeMove(m, d, tp, n);
           });
           Observer.publish();
-          return [add(movePlayed, m), add(totalPayout, tp)];
+
+          if(r) {
+            commit();
+            Player.only(() => {});
+            Player.publish().pay(tp);
+            return [add(movePlayed, 1), add(totalPayout, tp)];
+          } else {
+            return [movePlayed, totalPayout];
+          }
         })
        ) // TODO: Add constant to timeout
        .timeout(10, () => {

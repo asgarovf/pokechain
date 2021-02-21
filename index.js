@@ -66,6 +66,7 @@ class Player extends React.Component {
     });
     return response;
   }
+  acceptMoveGetter(response) { this.state.resolveResponseP(response); }
 
   async getMove() {
     const move = await new Promise(resolveMoveP => {
@@ -73,6 +74,7 @@ class Player extends React.Component {
     });
     return move;
   }
+  getMoveGetter(move) { this.state.resolveMoveP(move); }
 
   async getName() {
     const name = await new Promise(resolveNameP => {
@@ -80,6 +82,8 @@ class Player extends React.Component {
     });
     return name;
   }
+  getNameGetter(name) { this.state.resolveNameP(name); }
+
   // seeOutcome(i) { this.setState({view: 'Done', outcome: intToOutcome[i]}); }
   // informTimeout() { this.setState({view: 'Timeout'}); }
   // playMove(move) { this.state.playedMove(move); }

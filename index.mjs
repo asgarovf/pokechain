@@ -1,7 +1,6 @@
-import {loadStdlib} from '@reach-sh/stdlib';
+import { loadStdlib } from '@reach-sh/stdlib';
 import * as backend from './build/index.main.mjs';
 import { ask, yesno, done } from '@reach-sh/stdlib/ask.mjs';
-
 
 // ! A range check is necessary
 const moves = ['Up', 'Down', 'Left', 'Right', 'A Button', 'B Button'];
@@ -33,7 +32,7 @@ function printSplash() {
   console.log("────────▀███████████▀─────────────────────────────────────\n\n");
 }
 
-function printMoves () {
+function printMoves() {
   console.log("\n\n,-------------------------.");
   console.log("(_\\                       \\");
   console.log("   |     Moves List:      |");
@@ -47,7 +46,7 @@ function printMoves () {
   console.log(" (_/______________________/\n");
 }
 
-async function getName () {
+async function getName() {
   let name = await ask("Please enter your name", ((x) => x));
   return name;
 }
@@ -96,7 +95,7 @@ async function getName () {
     );
     ctc = acc.attach(backend, info);
   }
-  
+
   const fmt = (x) => stdlib.formatCurrency(x, 4);
   const getBalance = async () => fmt(await stdlib.balanceOf(acc));
 
@@ -105,72 +104,73 @@ async function getName () {
 
   const interact = {};
 
-  if(isObserver) {
+  if (isObserver) {
     interact.getParams = async () => {
-        const moveLimit = await ask("How many turns there will be?", parseInt);
-        const payoutPerDuration = await ask("What is the unit cost of the move?", stdlib.parseCurrency);
-        return ({
-            payoutPerDuration: payoutPerDuration,
-            moveLimit: moveLimit
-        });
+      const moveLimit = await ask("How many turns there will be?", parseInt);
+      const payoutPerDuration = await ask("What is the unit cost of the move?", stdlib.parseCurrency);
+      return ({
+        payoutPerDuration: payoutPerDuration,
+        moveLimit: moveLimit
+      });
     };
-    // TODO: Change name and var type
+
     interact.observeMove = (move, duration, toPay, name) => {
-        // TODO: moveList.push(move)
-        moveList.push(move);
-        // TODO: Print move
-        console.log(`\n-----\nObserver observed the move ${moves[move-1]} from ${name}.`);
-        // TODO: Send move to the API 
+      // moveList.push(move)
+      moveList.push(move);
+      // Print move
+      console.log(`\n-----\nObserver observed the move ${moves[move - 1]} from ${name}.`);
+      // TODO: Send move to the API 
+
     };
 
     interact.observeGameFinish = () => {
-        console.log("Game has finished");
-        // TODO: API call POST() gameFinish
+      console.log("Game has finished");
+      // TODO: API call POST() gameFinish
     };
 
     interact.observeTurnStart = (turnNum) => {
-        console.log(`\n-----\nStart of Turn ${turnNum}\n-----\n`);
+      console.log(`\n-----\nStart of Turn ${turnNum}\n-----\n`);
     };
   } else {
     const name = await getName();
     interact.acceptMove = async (payoutPerDuration) => {
-        const response = await ask(
-          `\nYou need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you confirm the move? (y/n)\n>> `,
-          yesno
-        );
+      const response = await ask(
+        `\nYou need to pay ${stdlib.formatCurrency(payoutPerDuration, 7)} ALGO for every second of input.\nDo you confirm the move? (y/n)\n>> `,
+        yesno
+      );
 
-        if (!response) {
-          console.log(`\n${name} refused to make a move.`);
-        }
+      if (!response) {
+        console.log(`\n${name} refused to make a move.`);
+      }
 
-        return response;
+      return response;
     };
 
     interact.getMove = async () => {
-        printMoves();
+      printMoves();
 
-        const move = await ask(
-          "Which move do you want to play?",
-          parseInt
-        );
+      const move = await ask(
+        "Which move do you want to play?",
+        parseInt
+      );
 
-        // Player movePlayed index check
-        // let move = moves.length+1;
-        // while (move > moves.length) {
-        //   move = await ask(
-        //     "Which move do you want to play?",
-        //     parseInt
-        //   );
-        // }
-        // TODO: Range check
-        
-        const duration = await ask(
-          "How long do you want your input to be?",
-          parseInt
-        );
+      // Player movePlayed index check
+      // let move = moves.length+1;
+      // while (move > moves.length) {
+      //   move = await ask(
+      //     "Which move do you want to play?",
+      //     parseInt
+      //   );
+      // }
+      // TODO: Range check
 
-        console.log(`${name} played to move "${moves[move-1]}" for ${duration} seconds`);
-        return [move, duration, name];
+      const duration = await ask(
+        "How long do you want your input to be?",
+        parseInt
+      );
+
+      console.log(`${name} played to move "${moves[move - 1]}" for ${duration} seconds`);
+      return [move, duration, name];
     };
   }
 

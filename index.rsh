@@ -134,13 +134,13 @@ export const main = Reach.App(
         }), //* Local step
         (([m, d, tp, r, n]) => 0), //* Pay step
         (([m, d, tp, r, n]) => { // * Consensus step
-          commit();
-          Observer.only(() => {
-            interact.observeMove(m, d, tp, n);
-          });
-          Observer.publish();
-
           if(r) {
+            commit();
+            Observer.only(() => {
+              interact.observeMove(m, d, tp, n);
+            });
+            Observer.publish();
+            
             commit();
             Player.only(() => {});
             Player.publish().pay(tp);

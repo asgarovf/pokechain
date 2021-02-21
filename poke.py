@@ -42,7 +42,7 @@ BINDINGS_KEYBOARD = {
 }
 
 def game_control():
-    last_id = 0;
+    last_id = 0
     global player_move
     while True:
         if last_id != player_move["id"]:

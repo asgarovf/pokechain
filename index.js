@@ -1,13 +1,14 @@
 import React from 'react';
 import AppViews from './views/AppViews';
-import DeployerViews from './views/DeployerViews';
-import AttacherViews from './views/AttacherViews';
+import PlayerViews from './views/PlayerViews';
+import ObserverViews from './views/ObserverViews';
 import { renderDOM, renderView } from './views/render';
-import './index.css';
+//import './index.css';
 import * as backend from './build/index.main.mjs';
 import * as reach from '@reach-sh/stdlib/ETH';
 
 const { standardUnit } = reach;
+const defaults = { defaultFundAmt: '10', defaultWager: '3', standardUnit };
 
 class App extends React.Component {
   constructor(props) {
@@ -69,10 +70,11 @@ class Player extends React.Component {
   acceptMoveGetter(response) { this.state.resolveResponseP(response); }
 
   async getMove() {
+    const name = await this.getName();
     const move = await new Promise(resolveMoveP => {
       this.setState({ view: 'GetMove', resolveMoveP });
     });
-    return move;
+    return move.concat(name);
   }
   getMoveGetter(move) { this.state.resolveMoveP(move); }
 
@@ -87,13 +89,16 @@ class Player extends React.Component {
   // seeOutcome(i) { this.setState({view: 'Done', outcome: intToOutcome[i]}); }
   // informTimeout() { this.setState({view: 'Timeout'}); }
   // playMove(move) { this.state.playedMove(move); }
+  render() { return renderView(this, PlayerViews); }
 }
 
 class Observer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { view: 'SetGame' }
+    this.state = { view: 'GetParams' }
   }
+  setGameGetter(game) { this.SetState({ view: 'Deploy', game }); }
+
   async deploy() {
     const ctc = this.props.acc.deploy(backend);
     this.setState({ view: 'Deploying', ctc });
@@ -105,12 +110,13 @@ class Observer extends React.Component {
 
   // ? Observer Interface Methods
 
-  async getParams() {
-    const params = await new Promise(resolveParamsP => {
-      this.setState({ view: 'GetParams', resolveParamsP });
-      return params;
-    });
-  }
+  // async getParams() {
+  //   const params = await new Promise(resolveParamsP => {
+  //     this.setState({ view: 'GetParams', resolveParamsP });
+  //     return params;
+  //   });
+  // }
+  // getParamsGetter(params) { this.state.resolveParamsP(params); }
 
   observeMove(move, duration, toPay, name) {
     console.log(`Move received.\nReceived move is: ${move}, (${duration}-${toPay}-${name})`);
@@ -127,9 +133,13 @@ class Observer extends React.Component {
     this.setState({ view: 'GameFinish' });
   }
 
+  // TODO: Rename it to move
+  // TODO: Extract it to the common interface
   observeTurnStart(turnNum) {
     this.setState({ view: 'TurnStart', turnNum: turnNum });
   }
+
+  render() { return renderView(this, ObserverViews); }
 }
 
 renderDOM(<App />);

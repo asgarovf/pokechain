@@ -63,7 +63,7 @@ class Player extends React.Component {
    */
   async acceptMove(payoutPerDuration) {
     const response = await new Promise(resolveResponseP => {
-      this.setState({ view: 'AcceptMove', cost: payoutPerDuration, resolveResponseP });
+      this.setState({ view: 'AcceptMove', cost: payoutPerDuration });
     });
     return response;
   }
@@ -72,7 +72,7 @@ class Player extends React.Component {
   async getMove() {
     const name = await this.getName();
     const move = await new Promise(resolveMoveP => {
-      this.setState({ view: 'GetMove', resolveMoveP });
+      this.setState({ view: 'GetMove', /*resolveMoveP*/ });
     });
     return move.concat(name);
   }
@@ -80,7 +80,7 @@ class Player extends React.Component {
 
   async getName() {
     const name = await new Promise(resolveNameP => {
-      this.setState({ view: 'GetName', resolveMoveP: resolveNameP });
+      this.setState({ view: 'GetName', /*resolveMoveP: resolveNameP*/ });
     });
     return name;
   }

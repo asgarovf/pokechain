@@ -127,7 +127,6 @@ export const main = Reach.App(
             const response = declassify(interact.acceptMove(payoutPerDuration));
             return ({
               msg: [move, duration, mul(duration, payoutPerDuration), response, name],
-              //when: declassify(_result)
             });
           }), //* Local step
           (([m, d, tp, r, n]) => 0), //* Pay step
@@ -149,7 +148,6 @@ export const main = Reach.App(
           })
         )
         .timeout(timeoutBlocks, () => {
-          // TODO: Observe timeout function
           Observer.only(() => interact.observeTimeout());
           Observer.publish();
           return [movePlayed, totalPayout];

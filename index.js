@@ -129,6 +129,10 @@ class Observer extends React.Component {
     });
   }
 
+  observeTimeout() {
+    this.setState({ view: 'ObserveTimeout' });
+  }
+
   observeGameFinish() {
     this.setState({ view: 'GameFinish' });
   }

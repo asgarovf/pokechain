@@ -80,33 +80,31 @@
   Maybe while is looping every move.
 
   FINISHED: (SECOND STEP) Add race to the game
- */ 
+ */
 
-const totalPlayers = 10;
+const timeoutBlocks = 30;
 
 const ObserverInterface = {
-  getParams: Fun([],Object({
+  getParams: Fun([], Object({
     payoutPerDuration: UInt,
     moveLimit: UInt,
   })),
-  observeMove: Fun([UInt, UInt, UInt, Bytes(32)], Null),  
+  observeMove: Fun([UInt, UInt, UInt, Bytes(32)], Null),
   observeGameFinish: Fun([], Null),
   observeTurnStart: Fun([UInt], Null),
-  // ? DEBUG
-  observeLoopFinish: Fun([], Null),
+  observeTimeout: Fun([], Null)
 };
 
 const PlayerInterface = {
   acceptMove: Fun([UInt], Bool),
   getMove: Fun([], Tuple(UInt, UInt, Bytes(32))),
-  observeLoopFinish: Fun([], Null),
 };
 
 export const main = Reach.App(
   {}, [
-    ['Observer', ObserverInterface], 
-    ['class', 'Player', PlayerInterface]
-  ], 
+  ['Observer', ObserverInterface],
+  ['class', 'Player', PlayerInterface]
+],
   (Observer, Player) => {
     Observer.only(() => {
       const _params = interact.getParams();
@@ -118,42 +116,43 @@ export const main = Reach.App(
     require(moveLimit > 0);
 
     const [movePlayed, totalPayout] =
-    parallel_reduce([0, 0])
-      .invariant(balance() == totalPayout)
-      .while(movePlayed < moveLimit)
-      .case(Player,
-        (() => {
-          const [_move, _duration, _name] = interact.getMove();
-          assume(_move > 0 && _duration > 0, "[ERROR] Invalid Move");
-          const [move, duration, name] = declassify([_move, _duration, _name]);
-          const response = declassify(interact.acceptMove(payoutPerDuration));
-          return ({
-            msg: [move, duration, mul(duration, payoutPerDuration), response, name],
-            //when: declassify(_result)
-          });
-        }), //* Local step
-        (([m, d, tp, r, n]) => 0), //* Pay step
-        (([m, d, tp, r, n]) => { // * Consensus step
-          if(r) {
-            commit();
-            Observer.only(() => {
-              interact.observeMove(m, d, tp, n);
+      parallel_reduce([0, 0])
+        .invariant(balance() == totalPayout)
+        .while(movePlayed < moveLimit)
+        .case(Player,
+          (() => {
+            const [_move, _duration, _name] = interact.getMove();
+            assume(_move > 0 && _duration > 0, "[ERROR] Invalid Move");
+            const [move, duration, name] = declassify([_move, _duration, _name]);
+            const response = declassify(interact.acceptMove(payoutPerDuration));
+            return ({
+              msg: [move, duration, mul(duration, payoutPerDuration), response, name],
+              //when: declassify(_result)
             });
-            Observer.publish();
-            
-            commit();
-            Player.only(() => {});
-            Player.publish().pay(tp);
-            return [add(movePlayed, 1), add(totalPayout, tp)];
-          } else {
-            return [movePlayed, totalPayout];
-          }
-        })
-       ) // TODO: Add constant to timeout
-       .timeout(10, () => {
-         // TODO: Observe timeout function
-         race(Player, Observer).publish();
-         return [movePlayed, totalPayout];
+          }), //* Local step
+          (([m, d, tp, r, n]) => 0), //* Pay step
+          (([m, d, tp, r, n]) => { // * Consensus step
+            if (r) {
+              commit();
+              Observer.only(() => {
+                interact.observeMove(m, d, tp, n);
+              });
+              Observer.publish();
+
+              commit();
+              Player.only(() => { });
+              Player.publish().pay(tp);
+              return [add(movePlayed, 1), add(totalPayout, tp)];
+            } else {
+              return [movePlayed, totalPayout];
+            }
+          })
+        )
+        .timeout(timeoutBlocks, () => {
+          // TODO: Observe timeout function
+          Observer.only(() => interact.observeTimeout());
+          Observer.publish();
+          return [movePlayed, totalPayout];
         });
 
     //? If needed we can make it more clear that every player in the dApp observes the moveList

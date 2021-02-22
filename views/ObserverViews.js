@@ -112,6 +112,16 @@ exports.ObserveMove = class extends React.Component {
     }
 }
 
+exports.ObserveTimeout = class extends React.Component {
+    render() {
+        return (
+            <div>
+                Observed timeout.
+            </div>
+        );
+    }
+}
+
 exports.GameFinish = class extends React.Component {
     render() {
         return (

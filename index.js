@@ -110,13 +110,14 @@ class Observer extends React.Component {
 
   // ? Observer Interface Methods
 
-  // async getParams() {
-  //   const params = await new Promise(resolveParamsP => {
-  //     this.setState({ view: 'GetParams', resolveParamsP });
-  //     return params;
-  //   });
-  // }
-  // getParamsGetter(params) { this.state.resolveParamsP(params); }
+  async getParams() {
+    const params = await new Promise(resolveParamsP => {
+      this.setState({ view: 'GetParams', resolveParamsP });
+    });
+    // TODO: Remember this
+    return params;
+  }
+  getParamsGetter(params) { this.state.resolveParamsP(params); }
 
   observeMove(move, duration, toPay, name) {
     console.log(`Move received.\nReceived move is: ${move}, (${duration}-${toPay}-${name})`);

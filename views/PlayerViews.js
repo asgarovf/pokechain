@@ -76,7 +76,7 @@ exports.Attaching = class extends React.Component {
 
 exports.AcceptMove = class extends React.Component {
     render() {
-        const { parent, cost, response } = this.props;
+        const { parent, cost } = this.props;
         return (
             <div>
                 <p>Cost of the move is {cost}</p>
@@ -98,50 +98,50 @@ exports.AcceptMove = class extends React.Component {
 // return Tuple (move, duration)
 exports.GetMove = class extends React.Component {
     render() {
-        const { parent, move } = this.props;
-        var move = 0;
+        const { parent } = this.props;
+        var playerMove = 0;
         var duration = 0;
         return (
             <div>
                 <div>
                     <input type="radio" id="up" name="playerMove" value="up"
-                        onClick={() => this.setState({ move: 1 })} />
+                        onClick={() => this.setState({ playerMove: 1 })} />
                     <label for="up">Up</label>
 
                     <input type="radio" id="down" name="playerMove" value="down"
-                        onClick={() => this.setState({ move: 2 })} />
+                        onClick={() => this.setState({ playerMove: 2 })} />
                     <label for="down">Down</label>
 
                     <input type="radio" id="left" name="playerMove" value="left"
-                        onClick={() => this.setState({ move: 3 })} />
+                        onClick={() => this.setState({ playerMove: 3 })} />
                     <label for="left">Left</label>
 
                     <input type="radio" id="right" name="playerMove" value="right"
-                        onClick={() => this.setState({ move: 4 })} />
+                        onClick={() => this.setState({ playerMove: 4 })} />
                     <label for="right">Right</label>
 
                     <input type="radio" id="a-button" name="playerMove" value="a-button"
-                        onClick={() => this.setState({ move: 5 })} />
+                        onClick={() => this.setState({ playerMove: 5 })} />
                     <label for="a-button">A Button</label>
 
                     <input type="radio" id="b-button" name="playerMove" value="b-button"
-                        onClick={() => this.setState({ move: 6 })} />
+                        onClick={() => this.setState({ playerMove: 6 })} />
                     <label for="b-button">B Button</label>
 
                     <input type="radio" id="l-trigger" name="playerMove" value="l-trigger"
-                        onClick={() => this.setState({ move: 7 })} />
+                        onClick={() => this.setState({ playerMove: 7 })} />
                     <label for="l-trigger">Left Trigger</label>
 
                     <input type="radio" id="r-trigger" name="playerMove" value="r-trigger"
-                        onClick={() => this.setState({ move: 8 })} />
+                        onClick={() => this.setState({ playerMove: 8 })} />
                     <label for="r-trigger">Right Trigger</label>
 
                     <input type="radio" id="start" name="playerMove" value="start"
-                        onClick={() => this.setState({ move: 9 })} />
+                        onClick={() => this.setState({ playerMove: 9 })} />
                     <label for="start">Start</label>
 
                     <input type="radio" id="select" name="playerMove" value="select"
-                        onClick={() => this.setState({ move: 10 })} />
+                        onClick={() => this.setState({ playerMove: 10 })} />
                     <label for="select">Select</label>
                 </div>
 
@@ -152,7 +152,7 @@ exports.GetMove = class extends React.Component {
                 />
 
                 <button
-                    onClick={() => parent.getMoveGetter([move, duration])}>
+                    onClick={() => parent.getMoveGetter([playerMove, duration])}>
                     Set Move
                 </button>
 
@@ -163,17 +163,17 @@ exports.GetMove = class extends React.Component {
 
 exports.GetName = class extends React.Component {
     render() {
-        const { parent, name } = this.props;
-        var name = '';
+        const { parent } = this.props;
+        var playerName = '';
         return (
             <div>
                 <input
                     placeholder='Enter Name'
-                    onChange={(e) => this.setState({ name: e.currentTarget.value })}
+                    onChange={(e) => this.setState({ playerName: e.currentTarget.value })}
                 />
                 <br />
                 <button
-                    onClick={() => parent.getNameGetter(name)}
+                    onClick={() => parent.getNameGetter(playerName)}
                 >Set Name</button>
             </div>
         );

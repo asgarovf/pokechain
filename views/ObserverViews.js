@@ -34,7 +34,7 @@ exports.GetParams = class extends React.Component {
                 />
                 <br />
                 <button
-                    onClick={() => parent.getParamsGetter({
+                    onClick={() => parent.setGameGetter({
                         moveLimit: moveLimit,
                         payoutPerDuration: payoutPerDuration
                     })}

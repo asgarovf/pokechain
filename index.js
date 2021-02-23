@@ -97,12 +97,12 @@ class Observer extends React.Component {
     super(props);
     this.state = { view: 'GetParams' }
   }
-  setGameGetter(game) { this.SetState({ view: 'Deploy', game }); }
+  setGameGetter(game) { this.setState({ view: 'Deploy', game }); }
 
   async deploy() {
     const ctc = this.props.acc.deploy(backend);
     this.setState({ view: 'Deploying', ctc });
-    this.wager = reach.parseCurrency(this.state.wager); // UInt
+    this.costPerMove = reach.parseCurrency(this.state.game.payoutPerDuration); // UInt
     backend.Observer(ctc, this);
     const ctcInfoStr = JSON.stringify(await ctc.getInfo(), null, 2);
     this.setState({ view: 'WaitingForPlayer', ctcInfoStr });
@@ -110,14 +110,13 @@ class Observer extends React.Component {
 
   // ? Observer Interface Methods
 
-  async getParams() {
-    const params = await new Promise(resolveParamsP => {
-      this.setState({ view: 'GetParams', resolveParamsP });
-    });
-    // TODO: Remember this
-    return params;
-  }
-  getParamsGetter(params) { this.state.resolveParamsP(params); }
+  // async getParams() {
+  //   const params = await new Promise(resolveParamsP => {
+  //     this.setState({ view: 'GetParams', resolveParamsP });
+  //   });
+  //   return params;
+  // }
+  // getParamsGetter(params) { this.state.resolveParamsP(params); }
 
   observeMove(move, duration, toPay, name) {
     console.log(`Move received.\nReceived move is: ${move}, (${duration}-${toPay}-${name})`);

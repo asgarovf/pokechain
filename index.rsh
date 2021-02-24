@@ -68,47 +68,52 @@
   
   * For test purposes players return random numbers
   
-  TODO: Make players return single values, store it in the frontend
+  FINISHED: Make players return single values, store it in the frontend
 
   FINISHED: (IMPORTANT) Make players get the list from Observer, 
   change it and then send it back to Observer. Make interface for that
   Make it work in the while-loop(I guess)
 
-  TODO: Try to observe one move at a time (again)
+  FINISHED: Try to observe one move at a time (again)
 
-  TODO: Rethink the turn concept in the game.
-  TODO: Maybe while is looping every move.
+  FINISHED: Rethink the turn concept in the game.
+  Maybe while is looping every move.
 
-  TODO: (SECOND STEP) Add race to the game
- */ 
+  FINISHED: (SECOND STEP) Add race to the game
+ */
 
-const totalPlayers = 10;
+const timeoutBlocks = 30;
 
 const ObserverInterface = {
-  getParams: Fun([],Object({
+  getParams: Fun([], Object({
     payoutPerDuration: UInt,
     moveLimit: UInt,
   })),
-  observeMove: Fun([UInt], Null),  
+  observeMove: Fun([UInt, UInt, UInt, Bytes(32)], Null),
   observeGameFinish: Fun([], Null),
   observeTurnStart: Fun([UInt], Null),
-  // ? DEBUG
-  observeLoopFinish: Fun([], Null),
+  observeTimeout: Fun([], Null)
 };
 
 const PlayerInterface = {
   acceptMove: Fun([UInt], Bool),
-  getMove: Fun([], Tuple(UInt, UInt, UInt)),
-  observeLoopFinish: Fun([], Null),
+  getMove: Fun([], Tuple(UInt, UInt, Bytes(32))),
 };
 
 export const main = Reach.App(
   {}, [
+<<<<<<< HEAD
     ['Observer', ObserverInterface], 
     ['class', 'Player', PlayerInterface],
     ['WonPlayer', PlayerInterface]
   ], 
   (Observer, Player, WonPlayer) => {
+=======
+  ['Observer', ObserverInterface],
+  ['class', 'Player', PlayerInterface]
+],
+  (Observer, Player) => {
+>>>>>>> mP-parallelReduce
     Observer.only(() => {
       const _params = interact.getParams();
       assume(_params.moveLimit > 0);
@@ -120,6 +125,7 @@ export const main = Reach.App(
 
     require(moveLimit > 0);
 
+<<<<<<< HEAD
     var game = ({
       movePlayed: 0,
       totalPayout: 0
@@ -146,8 +152,47 @@ export const main = Reach.App(
 
           commit();
           Observer.only(() => interact.observeLoopFinish());
-          Observer.publish();
+=======
+    const [movePlayed, totalPayout] =
+      parallel_reduce([0, 0])
+        .invariant(balance() == totalPayout)
+        .while(movePlayed < moveLimit)
+        .case(Player,
+          (() => {
+            const [_move, _duration, _name] = interact.getMove();
+            assume(_move > 0 && _duration > 0, "[ERROR] Invalid Move");
+            const [move, duration, name] = declassify([_move, _duration, _name]);
+            const response = declassify(interact.acceptMove(payoutPerDuration));
+            return ({
+              msg: [move, duration, mul(duration, payoutPerDuration), response, name],
+            });
+          }), //* Local step
+          (([m, d, tp, r, n]) => 0), //* Pay step
+          (([m, d, tp, r, n]) => { // * Consensus step
+            if (r) {
+              commit();
+              Observer.only(() => {
+                interact.observeMove(m, d, tp, n);
+              });
+              Observer.publish();
 
+              commit();
+              Player.only(() => { });
+              Player.publish().pay(tp);
+              return [add(movePlayed, 1), add(totalPayout, tp)];
+            } else {
+              return [movePlayed, totalPayout];
+            }
+          })
+        )
+        .timeout(timeoutBlocks, () => {
+          Observer.only(() => interact.observeTimeout());
+>>>>>>> mP-parallelReduce
+          Observer.publish();
+          return [movePlayed, totalPayout];
+        });
+
+<<<<<<< HEAD
           commit();
           WonPlayer.only(() => interact.observeLoopFinish());
           WonPlayer.publish();
@@ -238,6 +283,10 @@ export const main = Reach.App(
         //   continue;
         // }
     }
+=======
+    //? If needed we can make it more clear that every player in the dApp observes the moveList
+    //? by committing and adding a Player.only statement
+>>>>>>> mP-parallelReduce
 
     transfer(balance()).to(Observer);
     commit();

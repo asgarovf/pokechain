@@ -102,18 +102,10 @@ const PlayerInterface = {
 
 export const main = Reach.App(
   {}, [
-<<<<<<< HEAD
-    ['Observer', ObserverInterface], 
-    ['class', 'Player', PlayerInterface],
-    ['WonPlayer', PlayerInterface]
-  ], 
-  (Observer, Player, WonPlayer) => {
-=======
   ['Observer', ObserverInterface],
   ['class', 'Player', PlayerInterface]
 ],
   (Observer, Player) => {
->>>>>>> mP-parallelReduce
     Observer.only(() => {
       const _params = interact.getParams();
       assume(_params.moveLimit > 0);
@@ -125,34 +117,6 @@ export const main = Reach.App(
 
     require(moveLimit > 0);
 
-<<<<<<< HEAD
-    var game = ({
-      movePlayed: 0,
-      totalPayout: 0
-    });
-    invariant(balance() == game.totalPayout);
-    while(game.movePlayed < moveLimit) {
-        commit();
-
-        Player.only(() => {
-          const response = declassify(interact.acceptMove(payoutPerDuration));
-        });
-        // Player.publish(response);
-        race(Player).publish(response);
-        WonPlayer.set(this);
-
-        if(response) {
-          commit();
-          WonPlayer.only(() => {
-            const [_move, _duration, _toPay] = interact.getMove();
-            assume(_move > 0 && _duration > 0 && _toPay > 0, "[ERROR] Invalid Move");
-            const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
-          });
-          WonPlayer.publish(move, duration, toPay).pay(toPay);
-
-          commit();
-          Observer.only(() => interact.observeLoopFinish());
-=======
     const [movePlayed, totalPayout] =
       parallel_reduce([0, 0])
         .invariant(balance() == totalPayout)
@@ -187,106 +151,12 @@ export const main = Reach.App(
         )
         .timeout(timeoutBlocks, () => {
           Observer.only(() => interact.observeTimeout());
->>>>>>> mP-parallelReduce
           Observer.publish();
           return [movePlayed, totalPayout];
         });
 
-<<<<<<< HEAD
-          commit();
-          WonPlayer.only(() => interact.observeLoopFinish());
-          WonPlayer.publish();
-
-          const afterGame = {
-            movePlayed: add(game.movePlayed, 1),
-            totalPayout: add(game.totalPayout, toPay)
-          };
-
-          commit();
-
-          Observer.only(() => {
-            if(response) {
-              interact.observeMove(move);
-            }  
-          });
-          Observer.publish();  
-
-          //? If needed we can make it more clear that every player in the dApp observes the moveList
-          //? by committing and adding a Player.only statement
-
-          game = afterGame;
-
-          continue;
-        } 
-        else {
-          const afterGame = {
-            // TODO: Change that?
-            movePlayed: add(game.movePlayed, 1),
-            totalPayout: game.totalPayout
-          };
-          game = afterGame;
-          continue;
-        }
-
-        // if(response) {
-        //   // Player definitely sends a move a duration and to Pay
-        //   commit();
-
-        //   // TODO: race(Player).publish(move, duration, toPay);
-        //   // TODO: this part MAY be working every time a player makes a move. So there's no real need to transfer moves. Have to think about it 
-
-        //   Player.only(() => {
-        //     // Make player take the list, read it and change the 
-        //     const [_move, _duration, _toPay] = interact.getMove();
-        //     assume(_move > 0 && _duration > 0 && _toPay > 0, "[ERROR] Invalid Move");
-        //     const [move, duration, toPay] = declassify([_move, _duration, _toPay]);
-        //   });
-        //   race(Player).publish(move,duration,toPay).pay(toPay);
-        //   // Player.publish(move, duration, toPay)
-        //   //   .pay( toPay);
-          
-        //   commit();
-        //   Observer.only(() => interact.observeLoopFinish());
-        //   Observer.publish();
-
-        //   commit();
-        //   Player.only(() => interact.observeLoopFinish());
-        //   Player.publish();
-
-        //   const afterGame = {
-        //     movePlayed: add(game.movePlayed, 1),
-        //     totalPayout: add(game.totalPayout, toPay)
-        //   };
-
-        //   commit();
-
-        //   Observer.only(() => {
-        //     if(response) {
-        //       interact.observeMove(move);
-        //     }  
-        //   });
-        //   Observer.publish();  
-
-        //   //? If needed we can make it more clear that every player in the dApp observes the moveList
-        //   //? by committing and adding a Player.only statement
-
-        //   game = afterGame;
-
-        //   continue;
-        // } 
-        // else {
-        //   const afterGame = {
-        //     movePlayed: add(game.movePlayed, 1),
-        //     totalPayout: game.totalPayout
-        //   };
-        //   game = afterGame;
-        //   continue;
-        // }
-    }
-=======
     //? If needed we can make it more clear that every player in the dApp observes the moveList
     //? by committing and adding a Player.only statement
->>>>>>> mP-parallelReduce
 
     transfer(balance()).to(Observer);
     commit();
